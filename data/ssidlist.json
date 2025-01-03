@@ -1,0 +1,16 @@
+{
+    "wifilist": [
+        {
+            "ssid": "Network_1 but very long text",
+            "signal_strength": -50
+        },
+        {
+            "ssid": "Network_2",
+            "signal_strength": -60
+        },
+        {
+            "ssid": "Network_3",
+            "signal_strength": -70
+        }
+    ]
+}

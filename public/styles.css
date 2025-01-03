@@ -1,0 +1,158 @@
+.button,
+.select,
+.input,
+.input-narrow,
+.button-big{
+    height: 30px;
+    margin: 5px;
+    border: 2px;
+    border-style: solid;
+    border-radius: 3px;
+    color: #000000;
+    border-color: #000000;
+    background-color: #F8F8F8;
+}
+
+.button {
+    width: 110px;
+    background-color: #BBBBBB;
+}
+
+.red-bg {
+    background-color: #FF0000;
+}
+
+.red-fg {
+    color: #FF0000;
+}
+
+.checkbox {
+    width: 25px;
+    height: 25px;
+}
+
+.button-big {
+    height: 70px;
+    width: 120px;
+    border-radius: 8px;
+}
+
+.input {
+    width: 180px;
+}
+
+.input-narrow {
+    width: 120px;
+}
+
+label {
+    margin: 3px;
+}
+
+.separator {
+    padding:3px;
+}
+.row,
+.table-row {
+    text-align: center;
+}
+
+
+.row-button {
+    display: flex;
+}
+
+.table-container {
+    display: table;
+    margin: 0px auto;
+}
+
+.table-row {
+    display: table-row;
+}
+
+.table-cell {
+    display: table-cell;
+    padding: 3px;
+    vertical-align: middle;
+}
+
+.no-padding {
+    padding: 0px;
+}
+
+.aleft {
+    text-align: left;
+}
+
+.aright {
+    text-align: right;
+}
+
+.disabled .readonly {
+    background-color: #888888;
+    color: #ffa0a0;
+}
+
+.disabled {
+    display: none;
+}
+
+div,
+button,
+select,
+label,
+input[type="submit"] {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    padding: 4px;
+}
+
+h2 {
+    font-size: 24px;
+}
+
+.error {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.tooltip {
+    position: relative;
+    font-weight: bold;
+    vertical-align: middle;
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    padding: 5px;
+    border-radius: 8px;
+
+    position: absolute;
+    z-index: 1;
+    bottom: 100%;
+    right: 0%;
+    opacity: 0;
+    transition: opacity 0.5s;
+}
+
+.tooltip .tooltiptext::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 10px;
+    border-style: solid;
+    border-color: #555 transparent transparent transparent;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}
+

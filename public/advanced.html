@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        fetch('/advanced')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('host_name').value = data.host_name || 'HollowClock';
+                document.getElementById('host_ip').value = data.host_ip || '192.168.100.1';
+                document.getElementById('flip_rotation').checked = data.flip_rotation || false;
+                document.getElementById('allow_backward').checked = data.allow_backward || false;
+                document.getElementById('steps_per_minute').value = data.steps_per_minute || 256;
+                document.getElementById('delay_time').value = data.delay_time || 2;
+            })
+            .catch(error => console.error('Error fetching advanced settings:', error));
+    });
+</script>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Holow Clock 5 Plus Advanced Settings</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+    <div class="row">
+        <div class="cell">
+            <h2>Advanced Settings</h2>
+        </div>
+    </div>
+    <form action="/advanced" method="post">
+        <div class="table-container">
+            <div class="table-row">
+                <div class="table-cell aright">
+                    <label for="host_name"> Host Name</label>
+                </div>
+                <div class="table-cell aleft">
+                    <input class="input" type="text" id="host_name" name="host_name" value=""><br>
+                </div>
+            </div>
+            <div class="table-row">
+                <div class="table-cell aright tooltip">
+                    <span class="tooltiptext">This is the IP clock will use when act as access point</span>
+                    <label for="host_ip"> Host IP</label>
+                </div>
+                <div class="table-cell aleft">
+                    <input class="input" type="text" id="host_ip" name="host_ip" value="" inputmode="numeric" pattern="^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$" autocomplete="off" maxlength="15" placeholder="xxx.xxx.xxx.xxx">
+                </div>
+            </div>
+            <div class="table-row">
+                <div class="table-cell aright tooltip">
+                    <span class="tooltiptext">Check if your motor rotate to the opposite direction</span>
+                    <label for="flip_rotation"> Flip Rotation</label>
+                </div>
+                <div class="table-cell aleft">
+                    <input class="checkbox" type="checkbox" id="flip_rotation" name="flip_rotation" value="on">
+                </div>
+            </div>
+            <div class="table-row">
+                <div class="table-cell aright tooltip">
+                    <span class="tooltiptext">Allow backward move - speeds up calibration - don't use with ratched installed</span>
+                    <label for="flip_rotation"> Allow backward</label>
+                </div>
+                <div class="table-cell aleft">
+                    <input class="checkbox" type="checkbox" id="allow_backward" name="allow_backward" value="on">
+                </div>
+            </div>
+            <div class="table-row">
+                <div class="table-cell aright tooltip">
+                    <span class="tooltiptext">Adjust value if the clock is too fast or too slow. Default 256</span>
+                    <label for="steps_per_minute">Number of step per minute</label>
+                </div>
+                <div class="table-cell aleft">
+                    <input class="input" type="number" id="steps_per_minute" name="steps_per_minute" value="256" min="1" max="1024" step="1">
+                </div>
+            </div>
+            <div class="table-row">
+                <div class="table-cell aright tooltip">
+                    <span class="tooltiptext">Wait for a single step of stepper. Should be bigger than 1. Default value is 2</span>
+                    <label for="delay_time">Delay time</label>
+                </div>
+                <div class="table-cell aleft">
+                    <input class="input" type="number" id="delay_time" name="delay_time" value="2" min="2" max="100" step="1">
+
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <button class="button" type="submit" value="Save">Save</button>
+        </div>
+    </form>
+    <div class="row">
+        <div class="cell">
+            <button class="button" type="submit" onclick='location.href="/"'>Back</button>
+        </div>
+    </div>
+</body>
+</html>

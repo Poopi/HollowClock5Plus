@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<script>
+    function showAlert(text) {
+        return confirm(text);
+    }
+</script>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Holow Clock 5 Plus</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
+</head>
+<body>
+    <div class="row">
+        <div class="cell">
+            <h2>Hollow Clock Settings</h2>
+        </div>
+    </div>
+    <div class="table-container">
+        <div class="cell">
+            <div class="row-button">
+                <div class="separator"><button type="button" class="button-big" ; onclick="window.location.href = '/wifi.html'">Wifi
+                        Settings</button></div>
+                <div class="separator"><button type="button" class="button-big" ; onclick="window.location.href = '/time.html'">Time
+                        Settings</button></div>
+
+            </div>
+        </div>
+        <div class="cell">
+            <div class="row-button">
+                <div class="separator"><button type="button" class="button-big" ;
+                        onclick="window.location.href = '/advanced.html'">Advanced Settings</button></div>
+                <div class="separator"><button type="button" class="button-big" ;
+                        onclick="window.location.href = '/position.html'">Position Calibration</button></div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <form action="/apply" method="post" onsubmit='return showAlert("Are you sure you want to apply changes?")'>
+            <button class="button" type="submit" value="Apply">Apply</button>
+        </form>
+    </div>
+    <div class="row">
+        <form action="/reset" method="post"
+            onsubmit='return showAlert("Are you sure you want to reset settings to factory defaults?")'>
+            <button class="button red-bg" type="submit">Factory reset</button>
+        </form>
+    </div>
+    <div class="row"></div>
+    <div class="row"></div>
+    <div class="row">
+        <label>Version: 0.9.0 (7 January 2025)</label>
+    </div>
+    <div class="row">
+        <label>©2025 HollowClock5Plus by <a href="https://github.com/Poopi">Poopi</a></label>
+    </div>
+    <div class="row">
+        <label>©2024 Original hardware design by <a href="https://www.thingiverse.com/shiura">Shiura</a></label>
+    </div>
+</body>
+</html>

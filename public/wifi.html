@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<script>
+    let scanInterval;
+
+    function scanWifi() {
+        var scanButton = document.querySelector("button[onclick='scanWifi() ']");
+        var dots = 0;
+        scanButton.disabled = true;
+        scanButton.textContent = 'Scanning';
+
+        scanInterval = setInterval(() => {
+            dots = (dots + 1) % 4;
+            scanButton.textContent = 'Scanning' + '.'.repeat(dots);
+        }, 500);
+        
+        fetch('/ssidlist')
+            .then(response => response.json())
+            .then(data => {
+                clearInterval(scanInterval);
+                scanButton.textContent = 'Scan';
+                scanButton.disabled = false;
+
+                var wifiList = document.getElementById('wifiList');
+                wifiList.innerHTML = '';
+                data.wifilist.forEach((network, index) => {
+                    var option = document.createElement('option');
+                    option.value = network.ssid;
+                    option.textContent = `${network.ssid} (${network.signal_strength} dBm)`;
+                    wifiList.appendChild(option);
+                });
+                if (data.wifilist.length > 0) {
+                    wifiList.prepend(new Option('Select WiFi', '', true, true));
+                    wifiList.options[0].disabled = true;
+                }
+            })
+            .catch(error => {
+                clearInterval(scanInterval);
+                scanButton.textContent = 'Scan';
+                scanButton.disabled = false;
+                console.error('Error fetching WiFi list:', error);
+            });
+    }
+
+    function updateSSID() {
+        var wifiList = document.getElementById('wifiList');
+        var ssidInput = document.getElementById('ssid');
+        var selectedOption = wifiList.options[wifiList.selectedIndex].value;
+        ssidInput.value = selectedOption;
+    }
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+        fetch('/wifi')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('ssid').value = data.ssid || '';
+                document.getElementById('password').value = data.password || '';
+            })
+            .catch(error => console.error('Error fetching WiFi settings:', error));
+    });
+</script>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Holow Clock 5 Plus WiFi Settings</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+    <div class="row">
+        <div class="cell">
+            <h2>Wifi Settings</h2>
+        </div>
+    </div>
+
+    <form action="/wifi" method="post">
+        <div class="table-container">
+            <div class="table-row">
+                <div class="table-cell aright">
+                    <button class="button" type="button" onclick="scanWifi() ">Scan</button>
+                </div>
+                <div class="table-cell aleft">
+                    <select id="wifiList" class="select" onchange="updateSSID() ">
+                        <option value="">Not scanned</option>
+                    </select>
+                </div>
+            </div>
+            <div class="table-row">
+                <div class="table-cell aright">
+                    <label for="ssid">Selected WiFi</label>
+                </div>
+                <div class="table-cell aleft">
+                    <input class="input" type="text" id="ssid" name="ssid" value="">
+                </div>
+            </div>
+            <div class="table-row">
+                <div class="table-cell aright">
+                    <label for="password">Password</label>
+                </div>
+                <div class="table-cell aleft">
+                    <input class="input" type="password" id="password" name="password">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <button type="submit" class="button" value="Save">Save</button>
+        </div>
+    </form>
+
+    <div class="row">
+        <div class="cell">
+            <button type="submit" class="button" onclick='location.href="/"'>Back</button>
+        </div>
+    </div>
+</body>
+</html>

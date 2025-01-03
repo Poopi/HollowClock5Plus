@@ -1,0 +1,7 @@
+{
+    "ntp_server": "pl.pool.ntp.org",
+    "timezone_location": "Europe/Warsaw",
+    "timezone_value": "CEST-1CEST,M3.5.0,M10.5.0/3",
+    "tz_manual_en": false,
+    "tz_manual":"-3600"
+}

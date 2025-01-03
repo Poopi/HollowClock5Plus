@@ -1,0 +1,8 @@
+{
+    "host_name": "Hollow5P",
+    "host_ip": "192.168.99.1",
+    "flip_rotation": false,
+    "allow_backward": true,
+    "steps_per_minute": "256",
+    "delay_time":"2"
+}

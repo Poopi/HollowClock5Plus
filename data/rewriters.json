@@ -1,0 +1,6 @@
+{
+        "/zones/*": "/$1",
+        "/time/*": "/$1",
+        "/button/*": "/$1",
+        "/posts/:id/comments": "/proxy/comments/by-post?postId=:id"
+}

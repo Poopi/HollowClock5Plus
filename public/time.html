@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<script>
+    zones = [];
+
+    function setTimezoneMode(manual) {
+        if (manual) {
+            document.getElementById('timezone_manual').classList.remove("disabled");
+            document.getElementById('timezone_list').classList.add("disabled");
+        } else {
+            document.getElementById('timezone_manual').classList.add("disabled");
+            document.getElementById('timezone_list').classList.remove("disabled")
+        }
+    }
+    
+    function updateTz() {
+        document.getElementById('timezone_value').value = zones[document.getElementById('timezone_location').value];
+    }
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+        document.getElementById('tz_manual_en').addEventListener('change', function () {
+            setTimezoneMode(this.checked);
+        });
+    });
+
+    fetch('/zones')
+        .then(response => response.json())
+        .then(data => {
+            zones = data;
+            const timezoneSelect = document.getElementById('timezone_location');
+            for (let zone in data) {
+                const option = document.createElement('option');
+                option.text = zone;
+                option.value = zone;
+                option.priv = data[zone];
+                timezoneSelect.appendChild(option);
+            };
+
+            fetch('/time')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('ntp_server').value = data.ntp_server || '';
+                    document.getElementById('timezone_location').value = data.timezone_location || '';
+                    document.getElementById('timezone_value').value = data.timezone_value || '';
+                    setTimezoneMode(data.tz_manual_en || false);
+                    document.getElementById('tz_manual_en').checked = data.tz_manual_en || false;
+                    document.getElementById('tz_manual').value = data.tz_manual || '';
+                    updateTz();
+                })
+                .catch(error => console.error('Error fetching time settings:', error));
+        })
+        .catch(error => console.error('Error fetching timezones:', error));
+
+</script>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Holow Clock 5 Plus Time Settings</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+    <div class="row">
+        <div class="cell">
+            <h2>Time Settings</h2>
+        </div>
+    </div>
+    <form id="time_form" action="/time" method="post">
+        <div class="table-container">
+            <div class="table-row">
+                <div class="table-cell aright tooltip">
+                    <span class="tooltiptext">Sets the timezone to manual value</span>
+                    <label for="tz_manual_en">Manual Timezone </label>
+                </div>
+                <div class="table-cell aleft">
+                    <input class="checkbox" type="checkbox" id="tz_manual_en" name="tz_manual_en">
+                </div>
+            </div>
+
+            <div class="table-row" id="timezone_manual">
+                <div class="table-cell aright">
+                    <label for="tz_manual">Time offset in minutes</label>
+                </div>
+                <div class="table-cell aleft">
+                    <input class="input" type="text" id="tz_manual" name="tz_manual" value="">
+                </div>
+            </div>
+
+            <div class="table-row" id="timezone_list">
+                <div class="table-cell aright">
+                    <label for="timezone_location">Time zone</label>
+                </div>
+                <div class="table-cell aleft">
+                    <select class="select" type="text" id="timezone_location" name="timezone_location" value="" onchange="updateTz() ">
+                    </select>
+                </div>
+                <div class="table-cell">
+                    <input class="input" type="text" id="timezone_value" name="timezone_value" value="" readonly hidden>
+                </div>
+            </div>
+
+            <div class="table-row">
+                <div class="table-cell aright">
+                    <label for="ntp_server">NTP Server</label>
+                </div>
+                <div class="table-cell aleft">
+                    <input class="input" type="text" id="ntp_server" name="ntp_server" value="">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <button class="button" type="submit" value="Save" onclick="updateTz() ">Save</button>
+        </div>
+    </form>
+
+    <div class="row">
+        <div class="cell">
+            <button type="submit" class="button" onclick='location.href="/"'>Back</button>
+        </div>
+    </div>
+</body>
+</html>

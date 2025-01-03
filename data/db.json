@@ -1,0 +1,30 @@
+{
+  "/button": {
+      "_config": true,
+      "fetch": "data/button.json"
+  },
+  "/ssidlist": {
+    "_config": true,
+    "fetch": "data/ssidlist.json"
+  },
+  "/wifi": {
+    "_config": true,
+    "fetch": "data/wifi.json"
+  },
+  "/zones": {
+    "_config": true,
+    "fetch": "data/zones.json"
+  },
+  "/time": {
+    "_config": true,
+    "fetch": "data/time.json"
+  },
+  "/advanced": {
+    "_config": true,
+    "fetch": "data/advanced.json"
+  },
+  "/position": {
+    "_config": true,
+    "fetch": "data/position.json"
+  }
+}
