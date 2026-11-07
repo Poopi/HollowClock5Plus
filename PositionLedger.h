@@ -18,6 +18,8 @@
 //   any          --calibrate--> Settled (clears suspect)
 //   power loss in Moving, then load(): Settled at the pre-motion position,
 //                                      suspect = true
+//   a failed NVS write in any transition also sets suspect; the RAM position
+//   keeps tracking the hands and the flag is persisted by the next write
 //
 // NVS word layout (key "ClockPos", unchanged from the original firmware):
 //   0xFFFFFFFF            uncalibrated (INVALID_CLOCK_POSITION)

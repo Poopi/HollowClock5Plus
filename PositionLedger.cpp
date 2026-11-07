@@ -36,7 +36,11 @@ void PositionLedger::store() {
   if (suspect_.load()) {
     raw |= FLAG_SUSPECT;
   }
-  PreferencesManager::getInstance().setClock(raw);
+  if (PreferencesManager::getInstance().setClock(raw) != PREF_OK) {
+    // The word in NVS is now behind the hands. Remember the doubt; the next
+    // successful write carries the SUSPECT flag with it.
+    suspect_ = true;
+  }
 }
 
 void PositionLedger::calibrate(uint32_t position) {

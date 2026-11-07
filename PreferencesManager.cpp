@@ -210,8 +210,13 @@ uint32_t PreferencesManager::getClockPosition(void) { return clock_position; }
 
 pref_result_t PreferencesManager::setClock(uint32_t position) {
   if (clock_position != position) {
+    // Update the cached value only when the write landed, so a failed write
+    // is retried on the next call instead of being skipped as "unchanged".
+    if (preferences.putUInt(prefs_clock_position_key, position) == 0) {
+      ERROR("Failed to write clock position\n");
+      return PREF_ERROR;
+    }
     clock_position = position;
-    preferences.putUInt(prefs_clock_position_key, position);
   }
   return PREF_OK;
 }

@@ -182,7 +182,7 @@ void HollowClock::threadFunction(void) {
                   "time_diff(sec):%d\n",
                   current_time, local_clock_position,
                   time_diff * 60 / steps_per_minute);
-            moveRecorded(time_diff, delay_time);
+            moveRecorded(direction_forward ? time_diff : -time_diff, delay_time);
             playChime(current_time);
           }
         }
