@@ -31,13 +31,20 @@ HollowClock &HollowClock::getInstance() {
   return instance;
 }
 
-void HollowClock::adjustClockPosition(int steps) {
-  // Adjust current position
-  if (clock_position != PreferencesManager::INVALID_CLOCK_POSITION) {
-    clock_position = (steps > 0)
-                         ? (clock_position + steps) % max_clock_position
-                         : (clock_position + max_clock_position + steps) %
-                               max_clock_position;
+// Move the hands by `steps` (sign = direction) in chunks of at most one
+// minute, recording each chunk in the ledger before and after the motor runs.
+// `delaytime` < 0 selects the motor's fast speed.
+void HollowClock::moveRecorded(int steps, int delaytime) {
+  int limit = (int)steps_per_minute;
+  while (steps != 0) {
+    int chunk = steps > limit ? limit : (steps < -limit ? -limit : steps);
+    if (!ledger.begin(chunk)) {
+      ERROR("Ledger refused move of %d steps\n", chunk);
+      return;
+    }
+    MotorControl::getInstance().rotate(chunk, delaytime, flip_rotation);
+    ledger.commit();
+    steps -= chunk;
   }
 }
 // 10:35 - 0:27
@@ -85,8 +92,7 @@ void HollowClock::playChime(int current_time) {
 }
 
 void HollowClock::saveClockPosition(void) {
-  PreferencesManager &pm = PreferencesManager::getInstance();
-  pm.setClock(clock_position);
+  // Kept for the public interface; the ledger persists on every motion.
 }
 
 void HollowClock::setDirection(bool direction) { flip_rotation = direction; }
@@ -117,32 +123,20 @@ void HollowClock::threadFunction(void) {
         int steps;
         getParams(value, steps);
         TRACE("CMD_STEP: %d\n", steps);
-        if (steps > 0) {
-          while (steps > 0) {
-            int step = (steps > MAX_FAST_MOVMENT_STEPS) ? MAX_FAST_MOVMENT_STEPS
-                                                        : steps;
-            motor.rotate(step, delay_time, flip_rotation);
-            adjustClockPosition(step);
-            steps -= step;
-            delay(10);
-          }
-        } else if (allow_backward_movement) {
-          while (steps < 0) {
-            int step = (steps < -MAX_FAST_MOVMENT_STEPS)
-                           ? -MAX_FAST_MOVMENT_STEPS
-                           : steps;
-            motor.rotate(step, delay_time, flip_rotation);
-            adjustClockPosition(step);
-            steps -= step;
-            delay(10);
-          }
+        if (steps < 0 && !allow_backward_movement) {
+          break;
+        }
+        if (ledger.calibrated()) {
+          moveRecorded(steps, delay_time);
+        } else {
+          // Position unknown: nothing to record, just move.
+          motor.rotate(steps, delay_time, flip_rotation);
         }
         break;
       case CMD_UPDATE_POSITION:
         uint8_t hours, minutes;
         getParams(value, hours, minutes);
-        clock_position = (hours * 60 + minutes) * steps_per_minute;
-        saveClockPosition();
+        ledger.calibrate((hours * 60 + minutes) * steps_per_minute);
         break;
       }
       continue;
@@ -159,13 +153,12 @@ void HollowClock::threadFunction(void) {
       int minute = timeinfo.tm_min;
       int current_time = (hour * 60 + minute) * steps_per_minute;
 
-      if (clock_position == PreferencesManager::INVALID_CLOCK_POSITION) {
+      if (!ledger.calibrated()) {
         // We don't know the current position of the clock so just tick
         motor.rotate(steps_per_minute / 16, delay_time, flip_rotation);
-        adjustClockPosition(steps_per_minute / 16);
         delay(60000 / 16);
       } else {
-        uint32_t local_clock_position = (uint32_t)clock_position;
+        uint32_t local_clock_position = ledger.position();
         if (current_time != local_clock_position) {
           bool direction_forward = true;
           int time_diff = calculateTimeDiff(local_clock_position, current_time,
@@ -177,16 +170,10 @@ void HollowClock::threadFunction(void) {
                   current_time, local_clock_position,
                   direction_forward ? "" : "-",
                   time_diff * 60 / steps_per_minute);
-
-            time_diff = (time_diff > MAX_FAST_MOVMENT_STEPS)
-                            ? MAX_FAST_MOVMENT_STEPS
-                            : time_diff;
-            if (time_diff <= MAX_FAST_MOVMENT_STEPS) {
-              saveClockPosition();
-            }
-            motor.rotate(direction_forward ? time_diff : -time_diff, -1,
-                         flip_rotation); // move fast to the current position
-            adjustClockPosition(direction_forward ? time_diff : -time_diff);
+            // One minute per iteration so a STOP command is seen promptly;
+            // each minute is a ledger transaction of its own.
+            int chunk = steps_per_minute;
+            moveRecorded(direction_forward ? chunk : -chunk, -1);
             positioning = false;
             delay(10);
             continue;
@@ -195,9 +182,8 @@ void HollowClock::threadFunction(void) {
                   "time_diff(sec):%d\n",
                   current_time, local_clock_position,
                   time_diff * 60 / steps_per_minute);
-            motor.rotate(time_diff, delay_time, flip_rotation);
+            moveRecorded(time_diff, delay_time);
             playChime(current_time);
-            adjustClockPosition(time_diff);
           }
         }
       }
@@ -206,20 +192,17 @@ void HollowClock::threadFunction(void) {
   }
 }
 
-bool HollowClock::isCalibrated(void) {
-  return clock_position != PreferencesManager::INVALID_CLOCK_POSITION;
-}
+bool HollowClock::isCalibrated(void) { return ledger.calibrated(); }
 
 bool HollowClock::isPositioning(void) { return positioning; }
 
 hclock_result_t HollowClock::getClockPosition(uint8_t &hours, uint8_t &minutes) {
   hclock_result_t result = HCLOCK_ERROR;
-  uint32_t position = clock_position;
-  if( position == PreferencesManager::INVALID_CLOCK_POSITION){
+  if (!ledger.calibrated()) {
     hours = 0;
     minutes = 0;
-  }
-  else {
+  } else {
+    uint32_t position = ledger.position();
     hours = position / (60 * steps_per_minute);
     minutes = (position % (60 * steps_per_minute)) / steps_per_minute;
     result = HCLOCK_OK;
@@ -276,6 +259,10 @@ String HollowClock::getHandsPosition(void) {
     hours = 12;
   }
   snprintf(time_str, sizeof(time_str), "%2d:%02d", hours, minutes);
+  if (ledger.suspect()) {
+    return String(time_str) +
+           " - power was lost while the hands moved, please verify";
+  }
   return String(time_str);
 }
 
@@ -340,8 +327,8 @@ HollowClock::HollowClock() : started(false), positioning(false) {
   play_chime = pm.getChime();
   steps_per_minute = pm.getStepsPerMinute();
   delay_time = pm.getDelayTime();
-  clock_position = pm.getClockPosition();
   max_clock_position = 12 * 60 * steps_per_minute;
+  ledger.load(max_clock_position, steps_per_minute);
   last_synced_time = "never!";
 
 // Test

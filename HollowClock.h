@@ -8,6 +8,8 @@
 #include <queue>
 #include <thread>
 
+#include "PositionLedger.h"
+
 typedef enum {
   HCLOCK_OK = 0,
   HCLOCK_ERROR = -1,
@@ -42,7 +44,7 @@ private:
   HollowClock();
   ~HollowClock() = default;
 
-  void adjustClockPosition(int steps);
+  void moveRecorded(int steps, int delaytime);
   int calculateTimeDiff(int local_clock_position, int current_position,
                         bool &direction_forward);
   void playChime(int current_time);
@@ -64,7 +66,7 @@ private:
   bool positioning;
   uint32_t steps_per_minute;
   uint8_t delay_time;
-  std::atomic<uint32_t> clock_position;
+  PositionLedger ledger;
   int max_clock_position;
 
   void threadFunction(void);
