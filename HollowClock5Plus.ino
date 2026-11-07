@@ -173,34 +173,36 @@ void setup() {
   }
 
   TRACE("WiFi acting as %s\n", wifi_setup_done ? "STA" : "AP");
+  // The timezone must be in place before the clock thread reads the time.
+  // After a reset (not a power loss) the RTC still holds a valid time, and a
+  // thread started earlier would read it as UTC and move the hands by hours.
+  initTime();
   hclock.start();
   ClockWebServer &clockWebServer = ClockWebServer::getInstance();
   clockWebServer.start();
 }
 
-void loop() {
-  static bool reset_ntp = true;
+void initTime() {
+  TRACE("Init NTP\n");
+  PreferencesManager &pm = PreferencesManager::getInstance();
+  static String ntp_server = pm.getNTPServer();
+  String time_zone = pm.getTimeZone();
+  bool ntp_manual = pm.getManualTimezone();
+  int timezone_offset = pm.getManualTimezoneValue();
 
-  if (reset_ntp) {
-    TRACE("Init NTP\n");
-    PreferencesManager &pm = PreferencesManager::getInstance();
-    static String ntp_server = pm.getNTPServer();
-    String time_zone = pm.getTimeZone();
-    bool ntp_manual = pm.getManualTimezone();
-    int timezone_offset = pm.getManualTimezoneValue();
-
-    esp_netif_sntp_deinit();
-    sntp_set_time_sync_notification_cb(sync_time_cb);
-    if (ntp_manual) {
-      configTime(-timezone_offset * 60, 0, ntp_server.c_str());
-    } else {
-      configTzTime(time_zone.c_str(), ntp_server.c_str());
-    }
-
-    sntp_set_sync_interval(pm.getNTPUpdate() * 1000UL);
-    sntp_restart();
-    reset_ntp = false;
+  esp_netif_sntp_deinit();
+  sntp_set_time_sync_notification_cb(sync_time_cb);
+  if (ntp_manual) {
+    configTime(-timezone_offset * 60, 0, ntp_server.c_str());
+  } else {
+    configTzTime(time_zone.c_str(), ntp_server.c_str());
   }
+
+  sntp_set_sync_interval(pm.getNTPUpdate() * 1000UL);
+  sntp_restart();
+}
+
+void loop() {
   ClockWebServer &clockWebServer = ClockWebServer::getInstance();
   clockWebServer.handleClient();
   delay(1);
